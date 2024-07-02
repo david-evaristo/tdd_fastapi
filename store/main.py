@@ -13,6 +13,4 @@ class App(FastAPI):
         )
 
 
-# AULA CRIAÇÃO DE MODELS E REFATORAÇÃO DA USECASE
-
 app = App()
