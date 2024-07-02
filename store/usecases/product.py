@@ -1,13 +1,11 @@
 from typing import List
 from uuid import UUID
-
-import pymongo
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
-
-from store.core.exceptions import NotFoundException
+import pymongo
 from store.db.mongo import db_client
 from store.models.product import ProductModel
-from store.schemas.product import ProductIn, ProductOut, ProductUpdateOut, ProductUpdate
+from store.schemas.product import ProductIn, ProductOut, ProductUpdate, ProductUpdateOut
+from store.core.exceptions import NotFoundException
 
 
 class ProductUsecase:
@@ -34,10 +32,9 @@ class ProductUsecase:
         return [ProductOut(**item) async for item in self.collection.find()]
 
     async def update(self, id: UUID, body: ProductUpdate) -> ProductUpdateOut:
-        product = ProductUpdate(**body.model_dump(exclude_none=True))
         result = await self.collection.find_one_and_update(
             filter={"id": id},
-            update={"$set": product.model_dump()},
+            update={"$set": body.model_dump(exclude_none=True)},
             return_document=pymongo.ReturnDocument.AFTER,
         )
 

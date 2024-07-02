@@ -1,19 +1,11 @@
-from uuid import UUID
-
 import pytest
 import asyncio
 
-
-# from uuid import UUID
+from uuid import UUID
 from store.db.mongo import db_client
 from store.schemas.product import ProductIn, ProductUpdate
 from store.usecases.product import product_usecase
 from tests.factories import product_data, products_data
-
-
-# from store.schemas.product import ProductIn, ProductUpdate
-# from store.usecases.product import product_usecase
-# from tests.factories import product_data, products_data
 from httpx import AsyncClient
 
 
@@ -37,7 +29,7 @@ async def clear_collections(mongo_client):
         if collection_name.startswith("system"):
             continue
 
-        await mongo_client.get_database()[collection_name].delete_many({})
+        # await mongo_client.get_database()[collection_name].delete_many({})
 
 
 @pytest.fixture
