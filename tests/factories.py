@@ -7,6 +7,15 @@ def product_data():
     }
 
 
+def product_data_bad_request():
+    return {
+        "name": "",
+        "quantity": 10,
+        "price": 0,
+        "status": True,
+    }
+
+
 def products_data():
     return [
         {"name": "Iphone 11 Pro Max", "quantity": 20, "price": "4.500", "status": True},

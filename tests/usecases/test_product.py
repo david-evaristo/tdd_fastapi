@@ -1,15 +1,9 @@
-# from typing import List
-# from uuid import UUID
-#
-# import pytest
-# from store.core.exceptions import NotFoundException
-# from store.schemas.product import ProductOut, ProductUpdateOut
 from typing import List
 from uuid import UUID
 
 import pytest
 
-from store.core.exceptions import NotFoundException
+from store.core.exceptions import NotFoundException, BadRequestException
 from store.schemas.product import ProductOut, ProductUpdateOut
 from store.usecases.product import product_usecase
 
@@ -19,6 +13,13 @@ async def test_usecases_create_should_return_success(product_in):
 
     assert isinstance(result, ProductOut)
     assert result.name == "Iphone 14 Pro Max"
+
+
+async def test_usecases_create_should_return_bad_request(product_in_bad_request):
+    with pytest.raises(BadRequestException) as err:
+        await product_usecase.create(body=product_in_bad_request)
+
+    assert err.value.message == "Product name is required"
 
 
 async def test_usecases_get_should_return_success(product_inserted):

@@ -5,7 +5,7 @@ import pymongo
 from store.db.mongo import db_client
 from store.models.product import ProductModel
 from store.schemas.product import ProductIn, ProductOut, ProductUpdate, ProductUpdateOut
-from store.core.exceptions import NotFoundException
+from store.core.exceptions import NotFoundException, BadRequestException
 
 
 class ProductUsecase:
@@ -16,13 +16,16 @@ class ProductUsecase:
 
     async def create(self, body: ProductIn) -> ProductOut:
         product_model = ProductModel(**body.model_dump())
+
+        if not product_model.name:
+            raise BadRequestException(message="Product name is required")
+
         await self.collection.insert_one(product_model.model_dump())
 
         return ProductOut(**product_model.model_dump())
 
     async def get(self, id: UUID) -> ProductOut:
         result = await self.collection.find_one({"id": id})
-
         if not result:
             raise NotFoundException(message=f"Product not found with filter: {id}")
 

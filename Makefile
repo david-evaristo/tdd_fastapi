@@ -7,5 +7,5 @@ precommit-install:
 test:
 	@poetry run pytest
 
-test-matching:
+test-m:
 	@poetry run pytest -s -rx -k $(K) --pdb store ./tests/
