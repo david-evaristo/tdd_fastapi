@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from typing import Annotated, Optional
 from bson import Decimal128
@@ -28,9 +29,11 @@ Decimal_ = Annotated[Decimal, AfterValidator(convert_decimal_128)]
 
 
 class ProductUpdate(BaseSchemaMixin):
+    name: Optional[str] = Field(None, description="Product name")
     quantity: Optional[int] = Field(None, description="Product quantity")
     price: Optional[Decimal_] = Field(None, description="Product price")
     status: Optional[bool] = Field(None, description="Product status")
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class ProductUpdateOut(ProductOut):

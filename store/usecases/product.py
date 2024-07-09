@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from uuid import UUID
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
@@ -19,29 +20,42 @@ class ProductUsecase:
 
         if not product_model.name:
             raise BadRequestException(message="Product name is required")
-
         await self.collection.insert_one(product_model.model_dump())
-
         return ProductOut(**product_model.model_dump())
 
-    async def get(self, id: UUID) -> ProductOut:
+    async def get_by_id(self, id: UUID) -> ProductOut:
         result = await self.collection.find_one({"id": id})
         if not result:
             raise NotFoundException(message=f"Product not found with filter: {id}")
-
         return ProductOut(**result)
+
+    async def get_value(self, min_price: float, max_price: float) -> list[ProductOut]:
+        min_price_float = float(min_price)
+        max_price_float = float(max_price)
+        query = {"price": {"$gte": min_price_float, "$lte": max_price_float}}
+        results = await self.collection.find(query).to_list(length=None)
+        if not results:
+            raise NotFoundException(
+                message=f"Products not found within price: {min_price} - {max_price}"
+            )
+        return [ProductOut(**result) for result in results]
 
     async def query(self) -> List[ProductOut]:
         return [ProductOut(**item) async for item in self.collection.find()]
 
     async def update(self, id: UUID, body: ProductUpdate) -> ProductUpdateOut:
+        product = await self.collection.find_one({"id": id})
+
+        if not product:
+            raise NotFoundException(message=f"Product not found with filter: {id}")
+
+        update_data = body.dict(exclude_unset=True)
+        update_data["updated_at"] = datetime.utcnow()
         result = await self.collection.find_one_and_update(
             filter={"id": id},
-            update={"$set": body.model_dump(exclude_none=True)},
+            update={"$set": update_data},
             return_document=pymongo.ReturnDocument.AFTER,
         )
-        if not result:
-            raise NotFoundException(message=f"Product not found with filter: {id}")
 
         return ProductUpdateOut(**result)
 

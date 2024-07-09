@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import List
 from uuid import UUID
 
@@ -23,7 +24,7 @@ async def test_usecases_create_should_return_bad_request(product_in_bad_request)
 
 
 async def test_usecases_get_should_return_success(product_inserted):
-    result = await product_usecase.get(id=product_inserted.id)
+    result = await product_usecase.get_by_id(id=product_inserted.id)
 
     assert isinstance(result, ProductOut)
     assert result.name == "Iphone 14 Pro Max"
@@ -31,11 +32,22 @@ async def test_usecases_get_should_return_success(product_inserted):
 
 async def test_usecases_get_should_not_found():
     with pytest.raises(NotFoundException) as err:
-        await product_usecase.get(id=UUID("1e4f214e-85f7-461a-89d0-a751a32e3bb9"))
+        await product_usecase.get_by_id(id=UUID("1e4f214e-85f7-461a-89d0-a751a32e3bb9"))
 
     assert (
         err.value.message
         == "Product not found with filter: 1e4f214e-85f7-461a-89d0-a751a32e3bb9"
+    )
+
+
+async def test_usecases_get_value_should_return_success(product_value_inserted):
+    min_price = 6.498
+    max_price = 6.500
+    # breakpoint()
+    result = await product_usecase.get_value(min_price=min_price, max_price=max_price)
+
+    assert all(
+        Decimal(min_price) <= product.price <= Decimal(max_price) for product in result
     )
 
 

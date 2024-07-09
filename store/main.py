@@ -14,5 +14,6 @@ class App(FastAPI):
         )
 
 
+# falta alterar o update_at quando usado o post
 app = App()
 app.include_router(api_router)

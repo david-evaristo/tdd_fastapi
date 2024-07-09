@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import List
 
 import pytest
@@ -59,6 +60,22 @@ async def test_controller_get_should_return_success(
     }
 
 
+async def test_controller_get_value_should_return_success(
+    client, products_url, product_value_inserted, product_value
+):
+    response = await client.get(
+        f"{products_url}?min_price={product_value[0]}&max_price={product_value[1]}"
+    )
+    content = response.json()
+    filtered_items = [
+        item
+        for item in content
+        if product_value[0] <= Decimal(item["price"]) <= product_value[1]
+    ]
+    assert response.status_code == status.HTTP_200_OK
+    assert len(content) == len(filtered_items)
+
+
 async def test_controller_get_should_return_not_found(client, products_url):
     response = await client.get(f"{products_url}4fd7cd35-a3a0-4c1f-a78d-d24aa81e7dca")
 
@@ -70,8 +87,7 @@ async def test_controller_get_should_return_not_found(client, products_url):
 
 @pytest.mark.usefixtures("products_inserted")
 async def test_controller_query_should_return_success(client, products_url):
-    response = await client.get(products_url)
-
+    response = await client.get(products_url + "list/")
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(response.json(), List)
     assert len(response.json()) > 1

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 import asyncio
 
@@ -21,17 +23,6 @@ def mongo_client():
     return db_client.get()
 
 
-@pytest.fixture(autouse=True)
-async def clear_collections(mongo_client):
-    yield
-    collection_names = await mongo_client.get_database().list_collection_names()
-    for collection_name in collection_names:
-        if collection_name.startswith("system"):
-            continue
-
-        # await mongo_client.get_database()[collection_name].delete_many({})
-
-
 @pytest.fixture
 async def client() -> AsyncClient:
     from store.main import app
@@ -51,8 +42,18 @@ def product_id() -> UUID:
 
 
 @pytest.fixture
+def product_value():
+    return [Decimal("6.498"), Decimal("6.700")]
+
+
+@pytest.fixture
 def product_in(product_id):
     return ProductIn(**product_data(), id=product_id)
+
+
+@pytest.fixture
+def product_value_in():
+    return [ProductIn(**product) for product in products_data()]
 
 
 @pytest.fixture
@@ -71,6 +72,14 @@ async def product_inserted(product_in):
 
 
 @pytest.fixture
+async def product_value_inserted(product_value_in):
+    return [
+        await product_usecase.create(body=product_value_in)
+        for product_value_in in product_value_in
+    ]
+
+
+@pytest.fixture
 def products_in():
     return [ProductIn(**product) for product in products_data()]
 
@@ -78,3 +87,14 @@ def products_in():
 @pytest.fixture
 async def products_inserted(products_in):
     return [await product_usecase.create(body=product_in) for product_in in products_in]
+
+
+@pytest.fixture(autouse=True)
+async def clear_collections(mongo_client):
+    yield
+    collection_names = await mongo_client.get_database().list_collection_names()
+    for collection_name in collection_names:
+        if collection_name.startswith("system"):
+            continue
+
+        await mongo_client.get_database()[collection_name].delete_many({})
